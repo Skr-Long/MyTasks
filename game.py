@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pygame
 import random
 import math
@@ -14,6 +15,7 @@ BLUE = (80, 150, 255)
 YELLOW = (255, 255, 100)
 GREEN = (100, 255, 100)
 BG_COLOR = (30, 30, 50)
+DAMAGE_COLOR = (255, 100, 100)
 
 
 def draw_hand_drawn_circle(surface, color, center, radius, thickness=2):
@@ -55,15 +57,17 @@ class Player:
         self.max_health = 100
         self.shoot_cooldown = 0
         self.shoot_delay = 15
+        self.hit_flash = 0
+        self.hit_flash_max = 15
 
     def move(self, keys):
-        if keys[K_LEFT] or keys[K_a]:
+        if keys[K_LEFT] or keys[pygame.K_a]:
             self.x -= self.speed
-        if keys[K_RIGHT] or keys[K_d]:
+        if keys[K_RIGHT] or keys[pygame.K_d]:
             self.x += self.speed
-        if keys[K_UP] or keys[K_w]:
+        if keys[K_UP] or keys[pygame.K_w]:
             self.y -= self.speed
-        if keys[K_DOWN] or keys[K_s]:
+        if keys[K_DOWN] or keys[pygame.K_s]:
             self.y += self.speed
 
         self.x = max(self.width // 2, min(SCREEN_WIDTH - self.width // 2, self.x))
@@ -75,17 +79,26 @@ class Player:
             return Bullet(self.x, self.y - self.height // 2, -10, YELLOW)
         return None
 
+    def take_damage(self, amount):
+        self.health -= amount
+        self.hit_flash = self.hit_flash_max
+        if self.health < 0:
+            self.health = 0
+
     def update(self):
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
+        if self.hit_flash > 0:
+            self.hit_flash -= 1
 
     def draw(self, surface):
         cx, cy = self.x, self.y
+        color = DAMAGE_COLOR if self.hit_flash > 0 else BLUE
 
-        draw_hand_drawn_rect(surface, BLUE, (cx - 15, cy - 25, 30, 50), 3)
-        draw_hand_drawn_line(surface, BLUE, (cx - 15, cy - 15), (cx - 35, cy + 15), 3)
-        draw_hand_drawn_line(surface, BLUE, (cx + 15, cy - 15), (cx + 35, cy + 15), 3)
-        draw_hand_drawn_circle(surface, BLUE, (cx, cy - 10), 10, 3)
+        draw_hand_drawn_rect(surface, color, (cx - 15, cy - 25, 30, 50), 3)
+        draw_hand_drawn_line(surface, color, (cx - 15, cy - 15), (cx - 35, cy + 15), 3)
+        draw_hand_drawn_line(surface, color, (cx + 15, cy - 15), (cx + 35, cy + 15), 3)
+        draw_hand_drawn_circle(surface, color, (cx, cy - 10), 10, 3)
 
         pygame.draw.circle(surface, RED, (cx - 20, cy + 20), 4)
         pygame.draw.circle(surface, RED, (cx + 20, cy + 20), 4)
@@ -131,6 +144,8 @@ class Enemy:
         self.width = 40 + enemy_type * 10
         self.height = 40 + enemy_type * 10
         self.direction = 1
+        self.hit_flash = 0
+        self.hit_flash_max = 10
 
     def update(self):
         self.y += self.speed * 0.5
@@ -141,6 +156,8 @@ class Enemy:
 
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
+        if self.hit_flash > 0:
+            self.hit_flash -= 1
 
     def shoot(self):
         if self.shoot_cooldown == 0 and self.y > 50:
@@ -148,32 +165,37 @@ class Enemy:
             return Bullet(self.x, self.y + self.height // 2, 5, RED)
         return None
 
+    def take_damage(self, amount):
+        self.health -= amount
+        self.hit_flash = self.hit_flash_max
+        if self.health < 0:
+            self.health = 0
+
     def draw(self, surface):
         cx, cy = self.x, self.y
         size = self.width // 2
 
+        base_color = (200, 100, 100) if self.type == 0 else (150, 150, 200) if self.type == 1 else (200, 200, 100)
+        color = DAMAGE_COLOR if self.hit_flash > 0 else base_color
+
         if self.type == 0:
-            color = (200, 100, 100)
             draw_hand_drawn_circle(surface, color, (cx, cy), size, 3)
             draw_hand_drawn_line(surface, color, (cx - size, cy), (cx - size - 10, cy + 10), 2)
             draw_hand_drawn_line(surface, color, (cx + size, cy), (cx + size + 10, cy + 10), 2)
         elif self.type == 1:
-            color = (150, 150, 200)
             draw_hand_drawn_rect(surface, color, (cx - size, cy - size, size * 2, size * 2), 3)
             draw_hand_drawn_line(surface, color, (cx - size, cy - size), (cx - size - 8, cy - size - 8), 2)
             draw_hand_drawn_line(surface, color, (cx + size, cy - size), (cx + size + 8, cy - size - 8), 2)
         else:
-            color = (200, 200, 100)
             draw_hand_drawn_circle(surface, color, (cx, cy), size, 3)
             draw_hand_drawn_circle(surface, color, (cx, cy), size - 10, 2)
             draw_hand_drawn_line(surface, color, (cx, cy - size), (cx, cy - size - 15), 3)
 
-        if self.health < self.max_health:
-            bar_width = size * 2
-            bar_height = 4
-            health_ratio = self.health / self.max_health
-            pygame.draw.rect(surface, RED, (cx - size, cy - size - 15, bar_width, bar_height))
-            pygame.draw.rect(surface, GREEN, (cx - size, cy - size - 15, int(bar_width * health_ratio), bar_height))
+        bar_width = size * 2
+        bar_height = 4
+        health_ratio = self.health / self.max_health
+        pygame.draw.rect(surface, RED, (cx - size, cy - size - 15, bar_width, bar_height))
+        pygame.draw.rect(surface, GREEN, (cx - size, cy - size - 15, int(bar_width * health_ratio), bar_height))
 
     def get_rect(self):
         return pygame.Rect(self.x - self.width // 2, self.y - self.height // 2, self.width, self.height)
@@ -195,13 +217,34 @@ class Explosion:
     def draw(self, surface):
         progress = self.frame / self.max_frames
         radius = int(20 + progress * 30)
-        alpha = int(255 * (1 - progress))
 
         colors = [(255, 200, 100), (255, 100, 50), (255, 50, 50)]
         for i, color in enumerate(colors):
             r = radius - i * 5
             if r > 0:
                 draw_hand_drawn_circle(surface, color, (self.x, self.y), r, 2)
+
+    def is_finished(self):
+        return self.frame >= self.max_frames
+
+
+class DamageNumber:
+    def __init__(self, x, y, damage):
+        self.x = x
+        self.y = y
+        self.damage = damage
+        self.frame = 0
+        self.max_frames = 30
+
+    def update(self):
+        self.frame += 1
+        self.y -= 1
+
+    def draw(self, surface, font):
+        alpha = int(255 * (1 - self.frame / self.max_frames))
+        text = font.render(f"-{self.damage}", True, RED)
+        text.set_alpha(alpha)
+        surface.blit(text, (self.x - text.get_width() // 2, self.y))
 
     def is_finished(self):
         return self.frame >= self.max_frames
@@ -228,10 +271,23 @@ class Game:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("手绘雷电战机")
+        pygame.display.set_caption("Hand-Drawn Thunder Fighter")
+
+        try:
+            self.font = pygame.font.SysFont("microsoftyahei", 48)
+            self.small_font = pygame.font.SysFont("microsoftyahei", 28)
+            self.damage_font = pygame.font.SysFont("microsoftyahei", 20)
+        except:
+            try:
+                self.font = pygame.font.SysFont("simhei", 48)
+                self.small_font = pygame.font.SysFont("simhei", 28)
+                self.damage_font = pygame.font.SysFont("simhei", 20)
+            except:
+                self.font = pygame.font.Font(None, 48)
+                self.small_font = pygame.font.Font(None, 28)
+                self.damage_font = pygame.font.Font(None, 20)
+
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.Font(None, 48)
-        self.small_font = pygame.font.Font(None, 36)
 
         self.state = "menu"
         self.player = None
@@ -239,6 +295,7 @@ class Game:
         self.enemy_bullets = []
         self.enemies = []
         self.explosions = []
+        self.damage_numbers = []
         self.stars = [Star() for _ in range(50)]
         self.score = 0
         self.wave = 0
@@ -252,6 +309,7 @@ class Game:
         self.enemy_bullets = []
         self.enemies = []
         self.explosions = []
+        self.damage_numbers = []
         self.score = 0
         self.wave = 0
         self.wave_timer = 0
@@ -261,7 +319,7 @@ class Game:
 
     def start_next_wave(self):
         self.wave += 1
-        self.wave_timer = 60
+        self.wave_timer = 90
         self.enemies_in_wave = 0
         self.max_enemies_in_wave = 5 + self.wave * 2
 
@@ -294,15 +352,15 @@ class Game:
         for star in self.stars:
             star.draw(self.screen)
 
-        title = self.font.render("手绘雷电战机", True, YELLOW)
+        title = self.font.render("Hand-Drawn Thunder Fighter", True, YELLOW)
         title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3))
         self.screen.blit(title, title_rect)
 
-        prompt = self.small_font.render("点击开始游戏", True, WHITE)
+        prompt = self.small_font.render("Click to Start Game", True, WHITE)
         prompt_rect = prompt.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
         self.screen.blit(prompt, prompt_rect)
 
-        controls = self.small_font.render("WASD / 方向键移动  空格射击", True, (150, 150, 150))
+        controls = self.small_font.render("WASD / Arrow Keys: Move    Space: Shoot", True, (150, 150, 150))
         controls_rect = controls.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT * 2 // 3))
         self.screen.blit(controls, controls_rect)
 
@@ -328,19 +386,22 @@ class Game:
         for explosion in self.explosions:
             explosion.draw(self.screen)
 
-        score_text = self.small_font.render(f"分数: {self.score}", True, WHITE)
+        for damage_num in self.damage_numbers:
+            damage_num.draw(self.screen, self.damage_font)
+
+        score_text = self.small_font.render(f"Score: {self.score}", True, WHITE)
         self.screen.blit(score_text, (20, 20))
 
-        wave_text = self.small_font.render(f"第 {self.wave} 波", True, YELLOW)
+        wave_text = self.small_font.render(f"Wave {self.wave}", True, YELLOW)
         wave_rect = wave_text.get_rect(center=(SCREEN_WIDTH // 2, 20))
         self.screen.blit(wave_text, wave_rect)
 
-        health_text = self.small_font.render(f"生命: {self.player.health}", True, GREEN)
+        health_text = self.small_font.render(f"Health: {self.player.health}", True, GREEN)
         health_rect = health_text.get_rect(topright=(SCREEN_WIDTH - 20, 20))
         self.screen.blit(health_text, health_rect)
 
         if self.wave_timer > 0:
-            wave_start = self.font.render(f"第 {self.wave} 波来袭!", True, RED)
+            wave_start = self.font.render(f"Wave {self.wave} Coming!", True, RED)
             wave_start_rect = wave_start.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
             self.screen.blit(wave_start, wave_start_rect)
 
@@ -352,15 +413,15 @@ class Game:
         overlay.fill(BLACK)
         self.screen.blit(overlay, (0, 0))
 
-        game_over = self.font.render("游戏结束!", True, RED)
+        game_over = self.font.render("Game Over!", True, RED)
         game_over_rect = game_over.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3))
         self.screen.blit(game_over, game_over_rect)
 
-        final_score = self.small_font.render(f"最终分数: {self.score}", True, WHITE)
+        final_score = self.small_font.render(f"Final Score: {self.score}", True, WHITE)
         score_rect = final_score.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
         self.screen.blit(final_score, score_rect)
 
-        prompt = self.small_font.render("点击返回菜单", True, YELLOW)
+        prompt = self.small_font.render("Click to Return to Menu", True, YELLOW)
         prompt_rect = prompt.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT * 2 // 3))
         self.screen.blit(prompt, prompt_rect)
 
@@ -414,12 +475,19 @@ class Game:
             if explosion.is_finished():
                 self.explosions.remove(explosion)
 
+        for damage_num in self.damage_numbers[:]:
+            damage_num.update()
+            if damage_num.is_finished():
+                self.damage_numbers.remove(damage_num)
+
         for bullet in self.bullets[:]:
             for enemy in self.enemies[:]:
                 if self.check_collision(bullet.get_rect(), enemy.get_rect()):
                     if bullet in self.bullets:
                         self.bullets.remove(bullet)
-                    enemy.health -= 10
+                    damage = 10
+                    enemy.take_damage(damage)
+                    self.damage_numbers.append(DamageNumber(enemy.x, enemy.y - 20, damage))
                     if enemy.health <= 0:
                         self.explosions.append(Explosion(enemy.x, enemy.y))
                         self.enemies.remove(enemy)
@@ -429,7 +497,9 @@ class Game:
         for bullet in self.enemy_bullets[:]:
             if self.check_collision(bullet.get_rect(), self.player.get_rect()):
                 self.enemy_bullets.remove(bullet)
-                self.player.health -= 10
+                damage = 10
+                self.player.take_damage(damage)
+                self.damage_numbers.append(DamageNumber(self.player.x, self.player.y - 30, damage))
                 if self.player.health <= 0:
                     self.state = "gameover"
 
@@ -437,7 +507,9 @@ class Game:
             if self.check_collision(enemy.get_rect(), self.player.get_rect()):
                 self.explosions.append(Explosion(enemy.x, enemy.y))
                 self.enemies.remove(enemy)
-                self.player.health -= 30
+                damage = 30
+                self.player.take_damage(damage)
+                self.damage_numbers.append(DamageNumber(self.player.x, self.player.y - 30, damage))
                 if self.player.health <= 0:
                     self.state = "gameover"
 
