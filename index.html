@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物理教学实验模拟器</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔬 高中物理教学实验模拟器</h1>
+            <p>选择实验开始探索物理世界</p>
+        </header>
+
+        <div class="main-content">
+            <nav class="experiment-nav">
+                <h2>实验列表</h2>
+                <div class="nav-section">
+                    <h3>📐 力学实验</h3>
+                    <button class="nav-btn" data-experiment="freefall">自由落体运动</button>
+                    <button class="nav-btn" data-experiment="projectile">平抛运动</button>
+                    <button class="nav-btn" data-experiment="spring">弹簧振子</button>
+                    <button class="nav-btn" data-experiment="pendulum">单摆</button>
+                </div>
+                <div class="nav-section">
+                    <h3>⚡ 电学实验</h3>
+                    <button class="nav-btn" data-experiment="ohm">欧姆定律</button>
+                    <button class="nav-btn" data-experiment="circuit">串并联电路</button>
+                </div>
+                <div class="nav-section">
+                    <h3>🌈 光学实验</h3>
+                    <button class="nav-btn" data-experiment="lens">凸透镜成像</button>
+                    <button class="nav-btn" data-experiment="reflection">光的反射</button>
+                </div>
+                <div class="nav-section">
+                    <h3>🌡️ 热学实验</h3>
+                    <button class="nav-btn" data-experiment="gas">理想气体状态方程</button>
+                </div>
+            </nav>
+
+            <section class="experiment-area">
+                <div id="welcome-screen" class="welcome-screen">
+                    <div class="welcome-content">
+                        <h2>欢迎来到物理实验世界</h2>
+                        <p>👆 从左侧选择一个实验开始学习</p>
+                        <div class="features">
+                            <div class="feature">
+                                <span class="feature-icon">🎯</span>
+                                <h4>实时模拟</h4>
+                                <p>观察物理现象的实时动画演示</p>
+                            </div>
+                            <div class="feature">
+                                <span class="feature-icon">📊</span>
+                                <h4>数据记录</h4>
+                                <p>自动记录实验数据便于分析</p>
+                            </div>
+                            <div class="feature">
+                                <span class="feature-icon">⚙️</span>
+                                <h4>参数调节</h4>
+                                <p>自由调整各项实验参数</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="experiment-canvas-container" class="experiment-canvas-container" style="display: none;">
+                    <div class="experiment-header">
+                        <h2 id="experiment-title">实验名称</h2>
+                        <button id="back-btn" class="back-btn">返回列表</button>
+                    </div>
+                    
+                    <div class="experiment-content">
+                        <div class="canvas-wrapper">
+                        <canvas id="experiment-canvas"></canvas>
+                        </div>
+                        
+                        <div class="control-panel">
+                            <h3>控制面板</h3>
+                            <div id="controls-container"></div>
+                            <div class="action-buttons">
+                                <button id="start-btn" class="btn btn-primary">开始实验</button>
+                                <button id="reset-btn" class="btn btn-secondary">重置</button>
+                                <button id="pause-btn" class="btn btn-warning" style="display: none;">暂停</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="data-panel">
+                        <h3>实验数据</h3>
+                        <div id="data-container"></div>
+                        <div class="theory-info">
+                            <h4>理论公式</h4>
+                            <div id="formula-display"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="experiments.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
