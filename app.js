@@ -4,6 +4,7 @@ class ExperimentApp {
         this.currentExperimentKey = null;
         this.lastTime = 0;
         this.canvas = document.getElementById('experiment-canvas');
+        this.isNavCollapsed = false;
         
         this.initElements();
         this.initEventListeners();
@@ -20,6 +21,9 @@ class ExperimentApp {
         this.resetBtn = document.getElementById('reset-btn');
         this.pauseBtn = document.getElementById('pause-btn');
         this.backBtn = document.getElementById('back-btn');
+        this.toggleAnalysisBtn = document.getElementById('toggle-analysis-btn');
+        this.toggleNavBtn = document.getElementById('toggle-nav-btn');
+        this.navPanel = document.getElementById('experiment-nav');
     }
 
     initEventListeners() {
@@ -34,6 +38,8 @@ class ExperimentApp {
         this.resetBtn.addEventListener('click', () => this.resetExperiment());
         this.pauseBtn.addEventListener('click', () => this.pauseExperiment());
         this.backBtn.addEventListener('click', () => this.goBack());
+        this.toggleAnalysisBtn.addEventListener('click', () => this.toggleAnalysis());
+        this.toggleNavBtn.addEventListener('click', () => this.toggleNav());
 
         window.addEventListener('resize', () => {
             if (this.currentExperiment) {
@@ -41,6 +47,23 @@ class ExperimentApp {
                 this.currentExperiment.draw();
             }
         });
+    }
+
+    toggleNav() {
+        this.isNavCollapsed = !this.isNavCollapsed;
+        if (this.isNavCollapsed) {
+            this.navPanel.classList.add('collapsed');
+        } else {
+            this.navPanel.classList.remove('collapsed');
+        }
+    }
+
+    toggleAnalysis() {
+        if (this.currentExperiment && this.currentExperiment.toggleAnalysis) {
+            const isShowing = this.currentExperiment.toggleAnalysis();
+            this.toggleAnalysisBtn.textContent = isShowing ? '隐藏分析' : '显示分析';
+            this.currentExperiment.draw();
+        }
     }
 
     loadExperiment(experimentKey) {
@@ -66,6 +89,13 @@ class ExperimentApp {
         this.startBtn.style.display = 'block';
         this.pauseBtn.style.display = 'none';
         
+        if (this.currentExperiment.hasAnalysisToggle) {
+            this.toggleAnalysisBtn.style.display = 'block';
+            this.toggleAnalysisBtn.textContent = this.currentExperiment.showAnalysis ? '隐藏分析' : '显示分析';
+        } else {
+            this.toggleAnalysisBtn.style.display = 'none';
+        }
+        
         requestAnimationFrame((time) => this.gameLoop(time));
     }
 
@@ -86,9 +116,8 @@ class ExperimentApp {
                 slider.type = 'range';
                 slider.min = control.min;
                 slider.max = control.max;
-                slider.step = control.step;
+                slider.step = control.step || 1;
                 slider.value = control.value;
-                slider.className = 'control-slider';
                 slider.dataset.key = control.key;
 
                 const valueDisplay = document.createElement('div');
@@ -105,6 +134,36 @@ class ExperimentApp {
 
                 controlGroup.appendChild(slider);
                 controlGroup.appendChild(valueDisplay);
+            } else if (control.type === 'radio') {
+                const radioGroup = document.createElement('div');
+                radioGroup.className = 'radio-group';
+                
+                control.options.forEach((opt, idx) => {
+                    const radioLabel = document.createElement('label');
+                    radioLabel.className = 'radio-label';
+                    if (idx === control.value) radioLabel.classList.add('active');
+                    
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = control.key;
+                    radio.value = idx;
+                    if (idx === control.value) radio.checked = true;
+                    
+                    radio.addEventListener('change', (e) => {
+                        const value = parseInt(e.target.value);
+                        radioGroup.querySelectorAll('.radio-label').forEach(l => l.classList.remove('active'));
+                        radioLabel.classList.add('active');
+                        this.currentExperiment.updateControl(control.key, value);
+                        this.currentExperiment.draw();
+                        this.updateData();
+                    });
+                    
+                    radioLabel.appendChild(radio);
+                    radioLabel.appendChild(document.createTextNode(opt));
+                    radioGroup.appendChild(radioLabel);
+                });
+                
+                controlGroup.appendChild(radioGroup);
             }
 
             this.controlsContainer.appendChild(controlGroup);

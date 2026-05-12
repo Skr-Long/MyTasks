@@ -14,28 +14,33 @@
         </header>
 
         <div class="main-content">
-            <nav class="experiment-nav">
-                <h2>实验列表</h2>
-                <div class="nav-section">
-                    <h3>📐 力学实验</h3>
-                    <button class="nav-btn" data-experiment="freefall">自由落体运动</button>
-                    <button class="nav-btn" data-experiment="projectile">平抛运动</button>
-                    <button class="nav-btn" data-experiment="spring">弹簧振子</button>
-                    <button class="nav-btn" data-experiment="pendulum">单摆</button>
+            <nav class="experiment-nav" id="experiment-nav">
+                <div class="nav-header">
+                    <h2>实验列表</h2>
+                    <button class="toggle-nav-btn" id="toggle-nav-btn" title="收起/展开">◀</button>
                 </div>
-                <div class="nav-section">
-                    <h3>⚡ 电学实验</h3>
-                    <button class="nav-btn" data-experiment="ohm">欧姆定律</button>
-                    <button class="nav-btn" data-experiment="circuit">串并联电路</button>
-                </div>
-                <div class="nav-section">
-                    <h3>🌈 光学实验</h3>
-                    <button class="nav-btn" data-experiment="lens">凸透镜成像</button>
-                    <button class="nav-btn" data-experiment="reflection">光的反射</button>
-                </div>
-                <div class="nav-section">
-                    <h3>🌡️ 热学实验</h3>
-                    <button class="nav-btn" data-experiment="gas">理想气体状态方程</button>
+                <div class="nav-content">
+                    <div class="nav-section">
+                        <h3>📐 力学实验</h3>
+                        <button class="nav-btn" data-experiment="freefall">自由落体运动</button>
+                        <button class="nav-btn" data-experiment="projectile">平抛运动</button>
+                        <button class="nav-btn" data-experiment="spring">弹簧振子</button>
+                        <button class="nav-btn" data-experiment="pendulum">单摆</button>
+                    </div>
+                    <div class="nav-section">
+                        <h3>⚡ 电学实验</h3>
+                        <button class="nav-btn" data-experiment="ohm">欧姆定律</button>
+                        <button class="nav-btn" data-experiment="circuit">串并联电路</button>
+                    </div>
+                    <div class="nav-section">
+                        <h3>🌈 光学实验</h3>
+                        <button class="nav-btn" data-experiment="lens">凸透镜成像</button>
+                        <button class="nav-btn" data-experiment="reflection">光的反射</button>
+                    </div>
+                    <div class="nav-section">
+                        <h3>🌡️ 热学实验</h3>
+                        <button class="nav-btn" data-experiment="gas">理想气体状态方程</button>
+                    </div>
                 </div>
             </nav>
 
@@ -65,9 +70,10 @@
                 </div>
 
                 <div id="experiment-canvas-container" class="experiment-canvas-container" style="display: none;">
-                    <div class="experiment-header">
+                    <div class="experiment-top-bar">
+                        <button id="back-btn" class="back-btn-small">◀ 返回列表</button>
                         <h2 id="experiment-title">实验名称</h2>
-                        <button id="back-btn" class="back-btn">返回列表</button>
+                        <div class="top-bar-spacer"></div>
                     </div>
                     
                     <div class="experiment-content">
@@ -82,6 +88,7 @@
                                 <button id="start-btn" class="btn btn-primary">开始实验</button>
                                 <button id="reset-btn" class="btn btn-secondary">重置</button>
                                 <button id="pause-btn" class="btn btn-warning" style="display: none;">暂停</button>
+                                <button id="toggle-analysis-btn" class="btn btn-info" style="display: none;">显示分析</button>
                             </div>
                         </div>
                     </div>
