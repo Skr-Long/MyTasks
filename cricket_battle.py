@@ -1,14 +1,14 @@
+# -*- coding: utf-8 -*-
 import pygame
 import math
 import random
 import sys
-from pygame import mixer
 
 pygame.init()
 
 WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("电子斗蛐蛐")
+pygame.display.set_caption("Cricket Battle")
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -16,8 +16,6 @@ RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 YELLOW = (255, 255, 0)
-ORANGE = (255, 165, 0)
-PURPLE = (128, 0, 128)
 CYAN = (0, 255, 255)
 GRAY = (128, 128, 128)
 
@@ -27,11 +25,22 @@ ARENA_RADIUS = 220
 clock = pygame.time.Clock()
 FPS = 60
 
-try:
-    mixer.init()
-    SOUND_ENABLED = True
-except:
-    SOUND_ENABLED = False
+font_large = None
+font_medium = None
+font_small = None
+
+def init_fonts():
+    global font_large, font_medium, font_small
+    try:
+        font_large = pygame.font.SysFont("simhei, microsoftyahei, arial", 72)
+        font_medium = pygame.font.SysFont("simhei, microsoftyahei, arial", 36)
+        font_small = pygame.font.SysFont("simhei, microsoftyahei, arial", 24)
+    except:
+        font_large = pygame.font.Font(None, 72)
+        font_medium = pygame.font.Font(None, 36)
+        font_small = pygame.font.Font(None, 24)
+
+init_fonts()
 
 
 class Particle:
@@ -57,8 +66,8 @@ class Particle:
         alpha = int((self.lifetime / self.max_lifetime) * 255)
         if alpha < 0:
             alpha = 0
-        s = pygame.Surface((self.size * 2, self.size * 2), pygame.SRCALPHA)
-        pygame.draw.circle(s, (*self.color, alpha), (self.size, self.size), self.size)
+        s = pygame.Surface((int(self.size * 2), int(self.size * 2)), pygame.SRCALPHA)
+        pygame.draw.circle(s, (*self.color, alpha), (int(self.size), int(self.size)), int(self.size))
         surface.blit(s, (self.x - self.size, self.y - self.size))
 
 
@@ -119,16 +128,16 @@ class SkillEffect:
         if self.effect_type == "hit" and self.frame < 15:
             radius = 20 + self.frame * 2
             width = max(1, 5 - self.frame // 3)
-            pygame.draw.circle(surface, self.color, (int(self.x), int(self.y)), radius, width)
+            pygame.draw.circle(surface, self.color, (int(self.x), int(self.y)), int(radius), width)
         elif self.effect_type == "charge" and self.frame < 25:
             radius = 10 + self.frame
-            pygame.draw.circle(surface, self.color, (int(self.x), int(self.y)), radius, 2)
+            pygame.draw.circle(surface, self.color, (int(self.x), int(self.y)), int(radius), 2)
         elif self.effect_type == "shield" and self.frame < 25:
             for i in range(3):
                 radius = 30 + i * 10 + self.frame // 2
                 alpha = max(0, 255 - self.frame * 10)
-                s = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-                pygame.draw.circle(s, (*self.color, alpha), (radius, radius), radius, 3)
+                s = pygame.Surface((int(radius * 2), int(radius * 2)), pygame.SRCALPHA)
+                pygame.draw.circle(s, (*self.color, alpha), (int(radius), int(radius)), int(radius), 3)
                 surface.blit(s, (self.x - radius, self.y - radius))
 
 
@@ -142,8 +151,6 @@ class Cricket:
         self.health = 100
         self.max_health = 100
         self.speed = 3
-        self.dx = 0
-        self.dy = 0
         self.angle = 0
         self.is_player = is_player
 
@@ -269,7 +276,9 @@ class Cricket:
 
         if self.skills["shield"]["active"]:
             pygame.draw.circle(surface, CYAN, (int(self.x), int(self.y)), self.radius + 8, 3)
-            pygame.draw.circle(surface, (*CYAN, 50), (int(self.x), int(self.y)), self.radius + 6)
+            s = pygame.Surface((self.radius * 2 + 12, self.radius * 2 + 12), pygame.SRCALPHA)
+            pygame.draw.circle(s, (*CYAN, 50), (self.radius + 6, self.radius + 6), self.radius + 6)
+            surface.blit(s, (self.x - self.radius - 6, self.y - self.radius - 6))
 
         body_color = tuple(min(255, c + 50) for c in self.color)
         pygame.draw.circle(surface, body_color, (int(self.x), int(self.y)), self.radius)
@@ -280,8 +289,8 @@ class Cricket:
         ant1_y = self.y + math.sin(self.angle - 0.3) * antenna_length
         ant2_x = self.x + math.cos(self.angle + 0.3) * antenna_length
         ant2_y = self.y + math.sin(self.angle + 0.3) * antenna_length
-        pygame.draw.line(surface, self.color, (self.x, self.y), (ant1_x, ant1_y), 3)
-        pygame.draw.line(surface, self.color, (self.x, self.y), (ant2_x, ant2_y), 3)
+        pygame.draw.line(surface, self.color, (int(self.x), int(self.y)), (int(ant1_x), int(ant1_y)), 3)
+        pygame.draw.line(surface, self.color, (int(self.x), int(self.y)), (int(ant2_x), int(ant2_y)), 3)
 
         eye_dist = 8
         eye1_x = self.x + math.cos(self.angle - 0.2) * eye_dist
@@ -309,13 +318,7 @@ class Cricket:
 
 class SoundManager:
     def __init__(self):
-        self.sounds = {}
         self.cheer_timer = 0
-        self.load_sounds()
-
-    def load_sounds(self):
-        if not SOUND_ENABLED:
-            return
 
     def play_cheer(self):
         self.cheer_timer = random.randint(60, 180)
@@ -342,30 +345,27 @@ def draw_arena(surface):
 
 
 def draw_ui(surface, player, enemy):
-    font = pygame.font.Font(None, 36)
-    small_font = pygame.font.Font(None, 24)
-
-    title = font.render("电子斗蛐蛐", True, WHITE)
+    title = font_medium.render("Cricket Battle", True, WHITE)
     surface.blit(title, (WIDTH // 2 - title.get_width() // 2, 20))
 
-    player_name = small_font.render("红方 (WASD移动, 1234技能)", True, RED)
+    player_name = font_small.render("Red (WASD Move, 1234 Skills)", True, RED)
     surface.blit(player_name, (50, 70))
     player.draw_health_bar(surface, 50, 95)
 
-    enemy_name = small_font.render("蓝方 (AI)", True, BLUE)
-    surface.blit(enemy_name, (WIDTH - 250, 70))
+    enemy_name = font_small.render("Blue (AI)", True, BLUE)
+    surface.blit(enemy_name, (WIDTH - 150, 70))
     enemy.draw_health_bar(surface, WIDTH - 150, 95)
 
-    skill_names = ["普攻[1]", "重击[2]", "护盾[3]", "治疗[4]"]
+    skill_names = ["Attack[1]", "Power[2]", "Shield[3]", "Heal[4]"]
     skill_keys = ["normal_attack", "power_strike", "shield", "heal"]
     start_x = 50
     for i, (name, key) in enumerate(zip(skill_names, skill_keys)):
         skill = player.skills[key]
         cd_color = GREEN if skill["cooldown"] == 0 else GRAY
-        text = small_font.render(f"{name}", True, cd_color)
+        text = font_small.render(f"{name}", True, cd_color)
         surface.blit(text, (start_x + i * 120, HEIGHT - 60))
         if skill["cooldown"] > 0:
-            cd_text = small_font.render(f"CD:{skill['cooldown']//FPS+1}", True, RED)
+            cd_text = font_small.render(f"CD:{skill['cooldown']//FPS+1}", True, RED)
             surface.blit(cd_text, (start_x + i * 120, HEIGHT - 35))
 
 
@@ -374,20 +374,17 @@ def draw_winner(surface, winner):
     s.fill((0, 0, 0, 180))
     surface.blit(s, (0, 0))
 
-    font = pygame.font.Font(None, 72)
-    small_font = pygame.font.Font(None, 36)
-
-    color = RED if winner == "红方" else BLUE
-    text = font.render(f"{winner} 获胜!", True, color)
+    color = RED if winner == "Red" else BLUE
+    text = font_large.render(f"{winner} Wins!", True, color)
     surface.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - 50))
 
-    restart_text = small_font.render("按 R 重新开始", True, WHITE)
+    restart_text = font_medium.render("Press R to Restart", True, WHITE)
     surface.blit(restart_text, (WIDTH // 2 - restart_text.get_width() // 2, HEIGHT // 2 + 30))
 
 
 def reset_game():
-    player = Cricket(WIDTH // 2 - 80, HEIGHT // 2, RED, "红方", True)
-    enemy = Cricket(WIDTH // 2 + 80, HEIGHT // 2, BLUE, "蓝方", False)
+    player = Cricket(WIDTH // 2 - 80, HEIGHT // 2, RED, "Red", True)
+    enemy = Cricket(WIDTH // 2 + 80, HEIGHT // 2, BLUE, "Blue", False)
     return player, enemy
 
 
@@ -421,32 +418,35 @@ def main():
                         player.use_skill("heal", player)
 
         if not game_over:
-            keys = pygame.key.get_pressed()
-            dx, dy = 0, 0
-            if keys[pygame.K_w]:
-                dy = -1
-            if keys[pygame.K_s]:
-                dy = 1
-            if keys[pygame.K_a]:
-                dx = -1
-            if keys[pygame.K_d]:
-                dx = 1
-            player.move(dx, dy)
+            try:
+                keys = pygame.key.get_pressed()
+                dx, dy = 0, 0
+                if keys[pygame.K_w]:
+                    dy = -1
+                if keys[pygame.K_s]:
+                    dy = 1
+                if keys[pygame.K_a]:
+                    dx = -1
+                if keys[pygame.K_d]:
+                    dx = 1
+                player.move(dx, dy)
 
-            enemy.ai_update(player)
+                enemy.ai_update(player)
 
-            player.update()
-            enemy.update()
-            sound_manager.update()
+                player.update()
+                enemy.update()
+                sound_manager.update()
 
-            if player.health <= 0:
-                game_over = True
-                winner = "蓝方"
-                sound_manager.play_cheer()
-            elif enemy.health <= 0:
-                game_over = True
-                winner = "红方"
-                sound_manager.play_cheer()
+                if player.health <= 0:
+                    game_over = True
+                    winner = "Blue"
+                    sound_manager.play_cheer()
+                elif enemy.health <= 0:
+                    game_over = True
+                    winner = "Red"
+                    sound_manager.play_cheer()
+            except Exception as e:
+                print(f"Error in game loop: {e}")
 
         screen.fill(BLACK)
         draw_arena(screen)
