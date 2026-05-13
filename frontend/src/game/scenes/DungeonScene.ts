@@ -36,14 +36,15 @@ export class DungeonScene extends Phaser.Scene {
 
   private createBackground() {
     const graphics = this.add.graphics();
-    graphics.fillStyle(0x1a1a2e, 1);
-    graphics.fillRect(0, 0, 1280, 720);
+    
+    graphics.fillGradientStyle(0x1a0a2e, 0x2d1b4e, 0x1a0a2e, 0x2d1b4e, 1);
+    graphics.fillRect(0, 0, this.cameras.main.width, this.cameras.main.height);
 
     for (let i = 0; i < 50; i++) {
-      const x = Math.random() * 1280;
-      const y = Math.random() * 720;
+      const x = Math.random() * this.cameras.main.width;
+      const y = Math.random() * this.cameras.main.height;
       const size = Math.random() * 2 + 1;
-      graphics.fillStyle(0xffffff, Math.random() * 0.5 + 0.2);
+      graphics.fillStyle(0xffd700, Math.random() * 0.4 + 0.2);
       graphics.fillCircle(x, y, size);
     }
   }
@@ -99,11 +100,15 @@ export class DungeonScene extends Phaser.Scene {
   }
 
   private createLevelMap(centerX: number, centerY: number) {
-    this.add.text(centerX, 60, '选择副本', {
+    const title = this.add.text(centerX, 60, '大乱水浒 - 副本选择', {
       fontSize: '36px',
-      color: '#ffcc00',
-      fontStyle: 'bold'
+      color: '#ffd700',
+      fontStyle: 'bold',
+      stroke: '#8b0000',
+      strokeThickness: 3
     }).setOrigin(0.5);
+
+    title.setShadow(2, 2, '#000000', 4);
 
     const startY = 150;
     const spacing = 110;
@@ -118,10 +123,10 @@ export class DungeonScene extends Phaser.Scene {
     const height = 100;
     const isSelected = this.selectedLevel === index;
 
-    const bgColor = level.unlocked ? (isSelected ? 0x4a4a8a : 0x3a3a6a) : 0x2a2a3a;
+    const bgColor = level.unlocked ? (isSelected ? 0x3a2a5a : 0x2a2a4a) : 0x1a1a2a;
     const borderColor = level.unlocked ? 
-      (level.difficulty === 'easy' ? 0x44ff44 : 
-       level.difficulty === 'normal' ? 0xffff44 : 0xff4444) : 
+      (level.difficulty === 'easy' ? 0x4ade80 : 
+       level.difficulty === 'normal' ? 0xfbbf24 : 0xef4444) : 
       0x444444;
 
     const card = this.add.container(x, y);
@@ -130,7 +135,12 @@ export class DungeonScene extends Phaser.Scene {
       .setStrokeStyle(3, borderColor);
     card.add(bg);
 
-    const lockIcon = this.add.text(-width / 2 + 40, 0, level.unlocked ? '⚔' : '🔒', {
+    if (isSelected && level.unlocked) {
+      bg.setScale(1.02);
+    }
+
+    const icon = level.unlocked ? '⚔' : '🔒';
+    const lockIcon = this.add.text(-width / 2 + 40, 0, icon, {
       fontSize: '28px'
     }).setOrigin(0.5);
     card.add(lockIcon);
@@ -142,33 +152,37 @@ export class DungeonScene extends Phaser.Scene {
     }).setOrigin(0, 0.5);
     card.add(nameText);
 
-    const difficultyText = this.add.text(-width / 2 + 100, 20, level.description, {
+    const descriptionText = this.add.text(-width / 2 + 100, 20, level.description, {
       fontSize: '14px',
-      color: level.unlocked ? '#aaaaaa' : '#444444'
+      color: level.unlocked ? '#c49df0' : '#444444'
     }).setOrigin(0, 0.5);
-    card.add(difficultyText);
+    card.add(descriptionText);
 
     const difficultyLabel = level.difficulty === 'easy' ? '简单' : 
                             level.difficulty === 'normal' ? '普通' : '困难';
-    const difficultyColor = level.difficulty === 'easy' ? '#44ff44' : 
-                            level.difficulty === 'normal' ? '#ffff44' : '#ff4444';
+    const difficultyColor = level.difficulty === 'easy' ? '#4ade80' : 
+                            level.difficulty === 'normal' ? '#fbbf24' : '#ef4444';
     
     this.add.text(width / 2 - 150, 0, difficultyLabel, {
       fontSize: '16px',
       color: level.unlocked ? difficultyColor : '#444444',
-      backgroundColor: level.unlocked ? difficultyColor + '33' : '#222222',
-      padding: { x: 10, y: 5 }
+      backgroundColor: level.unlocked ? difficultyColor + '44' : '#222222',
+      padding: { x: 12, y: 6 },
+      fontStyle: 'bold'
     }).setOrigin(0.5);
 
     const rewardsText = `EXP:${level.rewards.exp} 💰:${level.rewards.gold}`;
     this.add.text(width / 2 - 40, 0, rewardsText, {
-      fontSize: '14px',
-      color: level.unlocked ? '#ffcc00' : '#444444'
+      fontSize: '15px',
+      color: level.unlocked ? '#ffd700' : '#444444',
+      fontStyle: 'bold'
     }).setOrigin(0.5);
 
     if (level.unlocked) {
       card.setSize(width, height);
       card.setInteractive({ useHandCursor: true });
+      card.on('pointerover', () => bg.setScale(1.02));
+      card.on('pointerout', () => bg.setScale(isSelected ? 1.02 : 1));
       card.on('pointerdown', () => {
         this.selectedLevel = index;
         this.scene.restart({ hero: this.currentHero });

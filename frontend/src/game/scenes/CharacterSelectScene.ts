@@ -13,40 +13,58 @@ export class CharacterSelectScene extends Phaser.Scene {
     const centerX = this.cameras.main.width / 2;
     const centerY = this.cameras.main.height / 2;
 
-    this.add.text(centerX, 80, '选择你的英雄', {
-      fontSize: '36px',
+    this.createBackground();
+    this.createTitle(centerX);
+    this.createHeroCards(centerX, centerY);
+    this.createStartButton(centerX, centerY);
+    this.selectHero(this.selectedHero);
+  }
+
+  private createBackground() {
+    const graphics = this.add.graphics();
+    
+    graphics.fillGradientStyle(0x1a0a2e, 0x2d1b4e, 0x1a0a2e, 0x2d1b4e, 1);
+    graphics.fillRect(0, 0, this.cameras.main.width, this.cameras.main.height);
+
+    for (let i = 0; i < 40; i++) {
+      const x = Math.random() * this.cameras.main.width;
+      const y = Math.random() * this.cameras.main.height;
+      const size = Math.random() * 2 + 1;
+      const alpha = Math.random() * 0.4 + 0.2;
+      graphics.fillStyle(0xffd700, alpha);
+      graphics.fillCircle(x, y, size);
+    }
+  }
+
+  private createTitle(centerX: number) {
+    const title = this.add.text(centerX, 60, '大乱水浒', {
+      fontSize: '48px',
+      fontFamily: 'serif',
       color: '#ffd700',
-      fontStyle: 'bold'
+      fontStyle: 'bold',
+      stroke: '#8b0000',
+      strokeThickness: 4
     }).setOrigin(0.5);
 
-    this.createHeroCards(centerX, centerY);
+    title.setShadow(3, 3, '#000000', 6);
 
-    const startButton = this.add.text(centerX, centerY + 200, '开始冒险', {
+    this.add.text(centerX, 110, '选择你的英雄', {
       fontSize: '28px',
-      color: '#ffffff',
-      backgroundColor: '#44aa44',
-      padding: { x: 40, y: 15 }
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-
-    startButton.on('pointerdown', () => {
-      this.scene.start('DungeonScene', { hero: this.selectedHero });
-    });
-    startButton.on('pointerover', () => startButton.setBackgroundColor('#55bb55'));
-    startButton.on('pointerout', () => startButton.setBackgroundColor('#44aa44'));
-
-    this.selectHero(this.selectedHero);
+      color: '#c49df0',
+      fontStyle: 'italic'
+    }).setOrigin(0.5);
   }
 
   private createHeroCards(centerX: number, centerY: number) {
     const heroes = [
-      { type: HeroTypes.WU_SONG, name: '武松', title: '天伤星', quality: 'UR', desc: '均衡型，醉拳连击' },
-      { type: HeroTypes.LU_ZHI_SHEN, name: '鲁智深', title: '天孤星', quality: 'UR', desc: '力量型，金刚护体' },
-      { type: HeroTypes.LIN_CHONG, name: '林冲', title: '天雄星', quality: 'SSR', desc: '敏捷型，林家枪法' }
+      { type: HeroTypes.WU_SONG, name: '武松', title: '天伤星', quality: 'UR', desc: '均衡型 · 醉拳连击', skill: '必杀技：鸳鸯脚' },
+      { type: HeroTypes.LU_ZHI_SHEN, name: '鲁智深', title: '天孤星', quality: 'UR', desc: '力量型 · 金刚护体', skill: '必杀技：倒拔垂杨柳' },
+      { type: HeroTypes.LIN_CHONG, name: '林冲', title: '天雄星', quality: 'SSR', desc: '敏捷型 · 林家枪法', skill: '必杀技：豹子头突刺' }
     ];
 
     heroes.forEach((hero, index) => {
       const x = centerX + (index - 1) * 280;
-      const y = centerY - 50;
+      const y = centerY - 30;
       
       const card = this.createHeroCard(x, y, hero);
       this.heroCards.set(hero.type, card);
@@ -57,11 +75,15 @@ export class CharacterSelectScene extends Phaser.Scene {
     const container = this.add.container(x, y);
     const color = QualityColors[hero.quality as keyof typeof QualityColors];
 
-    const bg = this.add.rectangle(0, 0, 240, 320, 0x2a2a4a).setStrokeStyle(3, color);
+    const bg = this.add.rectangle(0, 0, 250, 380, 0x1a1a2e, 0.95)
+      .setStrokeStyle(4, color);
     container.add(bg);
 
-    const qualityTag = this.add.text(0, -130, `${hero.quality}`, {
-      fontSize: '16px',
+    const qualityTag = this.add.rectangle(0, -170, 250, 40, color, 0.3);
+    container.add(qualityTag);
+
+    this.add.text(0, -170, `${hero.quality}`, {
+      fontSize: '18px',
       color: `#${color.toString(16).padStart(6, '0')}`,
       fontStyle: 'bold'
     }).setOrigin(0.5);
@@ -71,27 +93,32 @@ export class CharacterSelectScene extends Phaser.Scene {
     this.drawStickFigure(heroGraphics, 0, -30, color, hero.type);
     container.add(heroGraphics);
 
-    const nameText = this.add.text(0, 80, hero.name, {
-      fontSize: '24px',
+    this.add.text(0, 80, hero.name, {
+      fontSize: '32px',
       color: '#ffffff',
-      fontStyle: 'bold'
+      fontStyle: 'bold',
+      stroke: '#000000',
+      strokeThickness: 3
     }).setOrigin(0.5);
-    container.add(nameText);
+    container.add(this.add.text(0, 80, hero.name, {}));
 
-    const titleText = this.add.text(0, 110, hero.title, {
-      fontSize: '16px',
+    this.add.text(0, 115, hero.title, {
+      fontSize: '18px',
+      color: '#c49df0'
+    }).setOrigin(0.5);
+
+    this.add.text(0, 145, hero.desc, {
+      fontSize: '14px',
       color: '#aaaaaa'
     }).setOrigin(0.5);
-    container.add(titleText);
 
-    const descText = this.add.text(0, 140, hero.desc, {
-      fontSize: '14px',
-      color: '#888888',
-      wordWrap: { width: 200 }
+    this.add.text(0, 170, hero.skill, {
+      fontSize: '13px',
+      color: `#${color.toString(16).padStart(6, '0')}`,
+      fontStyle: 'italic'
     }).setOrigin(0.5);
-    container.add(descText);
 
-    container.setSize(240, 320);
+    container.setSize(250, 380);
     container.setInteractive({ useHandCursor: true });
     container.on('pointerdown', () => this.selectHero(hero.type));
 
@@ -100,37 +127,36 @@ export class CharacterSelectScene extends Phaser.Scene {
 
   private drawStickFigure(graphics: Phaser.GameObjects.Graphics, x: number, y: number, color: number, type: string) {
     graphics.clear();
+    graphics.lineStyle(5, color, 1);
+
+    graphics.strokeCircle(x, y - 50, 25);
+
+    graphics.fillStyle(0x000000, 1);
+    graphics.fillCircle(x - 8, y - 55, 4);
+    graphics.fillCircle(x + 8, y - 55, 4);
+
+    graphics.lineStyle(5, color, 1);
+    graphics.lineBetween(x, y - 25, x, y + 30);
+
     graphics.lineStyle(4, color, 1);
+    graphics.lineBetween(x, y - 15, x - 35, y + 10);
+    graphics.lineBetween(x, y - 15, x + 35, y + 10);
 
-    graphics.strokeCircle(x, y - 40, 15);
-
-    graphics.lineBetween(x, y - 25, x, y + 20);
-
-    if (type === HeroTypes.LU_ZHI_SHEN) {
-      graphics.lineStyle(6, color, 1);
-      graphics.lineBetween(x - 30, y - 10, x + 30, y - 10);
-      graphics.lineStyle(4, color, 1);
-    } else {
-      graphics.lineBetween(x, y - 15, x - 25, y);
-      graphics.lineBetween(x, y - 15, x + 25, y);
-    }
-
-    graphics.lineBetween(x, y + 20, x - 20, y + 60);
-    graphics.lineBetween(x, y + 20, x + 20, y + 60);
+    graphics.lineBetween(x, y + 30, x - 25, y + 80);
+    graphics.lineBetween(x, y + 30, x + 25, y + 80);
 
     if (type === HeroTypes.WU_SONG) {
-      graphics.lineStyle(3, 0xaaaaaa, 1);
-      graphics.lineBetween(x + 25, y, x + 45, y - 20);
-      graphics.lineBetween(x - 25, y, x - 45, y - 20);
+      graphics.lineStyle(3, 0xc0c0c0, 1);
+      graphics.lineBetween(x + 35, y + 10, x + 60, y - 15);
+      graphics.lineBetween(x - 35, y + 10, x - 60, y - 15);
     } else if (type === HeroTypes.LIN_CHONG) {
-      graphics.lineStyle(3, 0xaaaaaa, 1);
-      graphics.lineBetween(x, y - 25, x, y - 80);
-      graphics.lineBetween(x - 8, y - 70, x, y - 80);
-      graphics.lineBetween(x + 8, y - 70, x, y - 80);
+      graphics.lineStyle(4, 0xc0c0c0, 1);
+      graphics.lineBetween(x, y - 25, x, y - 110);
+      graphics.triangle(x, y - 115, x - 12, y - 100, x + 12, y - 100);
     } else if (type === HeroTypes.LU_ZHI_SHEN) {
-      graphics.lineStyle(5, 0x8B4513, 1);
-      graphics.lineBetween(x + 35, y - 30, x + 35, y + 30);
-      graphics.strokeCircle(x + 35, y - 35, 8);
+      graphics.lineStyle(6, 0x8B4513, 1);
+      graphics.lineBetween(x + 40, y - 20, x + 40, y + 50);
+      graphics.strokeCircle(x + 40, y - 25, 12);
     }
   }
 
@@ -140,12 +166,41 @@ export class CharacterSelectScene extends Phaser.Scene {
     this.heroCards.forEach((card, type) => {
       const bg = card.getAt(0) as Phaser.GameObjects.Rectangle;
       if (type === heroType) {
-        bg.setFillStyle(0x3a3a6a);
-        card.setScale(1.05);
+        bg.setFillStyle(0x2a2a5a);
+        card.setScale(1.08);
+        card.setDepth(10);
       } else {
-        bg.setFillStyle(0x2a2a4a);
+        bg.setFillStyle(0x1a1a2e);
         card.setScale(1);
+        card.setDepth(0);
       }
+    });
+  }
+
+  private createStartButton(centerX: number, centerY: number) {
+    const buttonBg = this.add.rectangle(centerX, centerY + 230, 220, 60, 0x6b4c9a)
+      .setStrokeStyle(3, 0x9d7cd8)
+      .setInteractive({ useHandCursor: true });
+
+    const buttonText = this.add.text(centerX, centerY + 230, '开始冒险', {
+      fontSize: '28px',
+      color: '#ffffff',
+      fontStyle: 'bold'
+    }).setOrigin(0.5);
+
+    buttonBg.on('pointerover', () => {
+      buttonBg.setFillStyle(0x7b5caa);
+      buttonBg.setScale(1.05);
+    });
+    buttonBg.on('pointerout', () => {
+      buttonBg.setFillStyle(0x6b4c9a);
+      buttonBg.setScale(1);
+    });
+    buttonBg.on('pointerdown', () => {
+      this.cameras.main.fade(800, 0, 0, 0);
+      this.time.delayedCall(800, () => {
+        this.scene.start('DungeonScene', { hero: this.selectedHero });
+      });
     });
   }
 }

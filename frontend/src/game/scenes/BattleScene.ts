@@ -9,18 +9,21 @@ export class BattleScene extends Phaser.Scene {
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private attackKey!: Phaser.Input.Keyboard.Key;
   private skillKey!: Phaser.Input.Keyboard.Key;
+  private leftKey!: Phaser.Input.Keyboard.Key;
+  private rightKey!: Phaser.Input.Keyboard.Key;
+  private jumpKey!: Phaser.Input.Keyboard.Key;
   private hpBar!: Phaser.GameObjects.Graphics;
   private comboText!: Phaser.GameObjects.Text;
   private isPaused: boolean = false;
-  private cameraTargetX: number = 0;
+  private ground!: Phaser.Physics.Arcade.StaticGroup;
 
   constructor() {
     super('BattleScene');
   }
 
   create(data: { hero: HeroType }) {
-    this.cameras.main.setBounds(0, 0, 2000, 720);
-    this.physics.world.setBounds(0, 0, 2000, 720);
+    this.cameras.main.setBounds(0, 0, 2500, 720);
+    this.physics.world.setBounds(0, 0, 2500, 720);
 
     this.createBackground();
     this.createGround();
@@ -33,49 +36,58 @@ export class BattleScene extends Phaser.Scene {
     this.setupInput();
 
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+    this.cameras.main.fadeIn(1000);
   }
 
   private createBackground() {
     const graphics = this.add.graphics();
     
     graphics.fillStyle(0x1a1a2e, 1);
-    graphics.fillRect(0, 0, 2000, 720);
+    graphics.fillRect(0, 0, 2500, 720);
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 15; i++) {
       graphics.fillStyle(0x2a2a4a, 1);
       graphics.beginPath();
-      graphics.moveTo(i * 250, 500);
-      graphics.lineTo(i * 250 + 125, 300);
-      graphics.lineTo(i * 250 + 250, 500);
+      graphics.moveTo(i * 180, 550);
+      graphics.lineTo(i * 180 + 90, 350);
+      graphics.lineTo(i * 180 + 180, 550);
       graphics.closePath();
       graphics.fillPath();
     }
 
-    for (let i = 0; i < 20; i++) {
-      const x = i * 120 + Math.random() * 50;
+    for (let i = 0; i < 30; i++) {
+      const x = i * 90 + Math.random() * 30;
       graphics.fillStyle(0x1a3a1a, 1);
-      graphics.fillTriangle(x, 450, x - 25, 500, x + 25, 500);
-      graphics.fillTriangle(x, 470, x - 20, 510, x + 20, 510);
+      graphics.fillTriangle(x, 480, x - 20, 530, x + 20, 530);
+      graphics.fillTriangle(x, 500, x - 15, 540, x + 15, 540);
+    }
+
+    for (let i = 0; i < 100; i++) {
+      const x = Math.random() * 2500;
+      const y = Math.random() * 300;
+      const size = Math.random() * 2 + 1;
+      graphics.fillStyle(0xffd700, Math.random() * 0.4 + 0.2);
+      graphics.fillCircle(x, y, size);
     }
   }
 
   private createGround() {
-    const ground = this.physics.add.staticGroup();
+    this.ground = this.physics.add.staticGroup();
     
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 25; i++) {
       const platform = this.add.rectangle(i * 100 + 50, 650, 100, 40, 0x3a5a3a);
-      ground.add(platform);
+      this.ground.add(platform);
     }
 
-    this.physics.add.collider(this.player, ground);
+    this.physics.add.collider(this.player, this.ground);
   }
 
   private spawnEnemies() {
     const enemyPositions = [
-      { x: 600, y: 550, type: 'normal' as const },
-      { x: 900, y: 550, type: 'normal' as const },
-      { x: 1200, y: 550, type: 'elite' as const },
-      { x: 1500, y: 550, type: 'boss' as const }
+      { x: 600, y: 500, type: 'normal' as const },
+      { x: 900, y: 500, type: 'normal' as const },
+      { x: 1200, y: 500, type: 'elite' as const },
+      { x: 1600, y: 500, type: 'boss' as const }
     ];
 
     enemyPositions.forEach(pos => {
@@ -83,7 +95,7 @@ export class BattleScene extends Phaser.Scene {
       this.add.existing(enemy);
       this.enemies.push(enemy);
       
-      this.physics.add.collider(enemy, this.physics.world.bounds);
+      this.physics.add.collider(enemy, this.ground);
     });
   }
 
@@ -91,20 +103,33 @@ export class BattleScene extends Phaser.Scene {
     this.hpBar = this.add.graphics();
     this.hpBar.setScrollFactor(0);
 
-    this.comboText = this.add.text(640, 100, '', {
-      fontSize: '32px',
+    const title = this.add.text(640, 30, '大乱水浒 - 战斗', {
+      fontSize: '24px',
+      color: '#ffd700',
+      fontStyle: 'bold',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(0.5).setScrollFactor(0);
+
+    this.comboText = this.add.text(640, 80, '', {
+      fontSize: '36px',
       color: '#ffcc00',
-      fontStyle: 'bold'
+      fontStyle: 'bold',
+      stroke: '#8b0000',
+      strokeThickness: 3
     }).setOrigin(0.5).setScrollFactor(0);
 
     this.add.text(20, 20, 'A/D: 移动 | W: 跳跃 | J: 攻击 | K: 技能', {
-      fontSize: '16px',
+      fontSize: '14px',
       color: '#aaaaaa'
     }).setScrollFactor(0);
   }
 
   private setupInput() {
     this.cursors = this.input.keyboard!.createCursorKeys();
+    this.leftKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+    this.rightKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    this.jumpKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.W);
     this.attackKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.J);
     this.skillKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.K);
   }
@@ -129,16 +154,15 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private handlePlayerInput() {
-    if (this.cursors.left.isDown || this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.A).isDown) {
+    if (this.leftKey.isDown) {
       this.player.moveLeft();
-    } else if (this.cursors.right.isDown || this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.D).isDown) {
+    } else if (this.rightKey.isDown) {
       this.player.moveRight();
     } else {
       this.player.stopMoving();
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.cursors.up) || 
-        Phaser.Input.Keyboard.JustDown(this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.W))) {
+    if (Phaser.Input.Keyboard.JustDown(this.jumpKey) || Phaser.Input.Keyboard.JustDown(this.cursors.up)) {
       this.player.jump();
     }
 
@@ -162,7 +186,8 @@ export class BattleScene extends Phaser.Scene {
     const damage = Math.floor(baseDamage * (1 + comboBonus));
 
     this.enemies.forEach(enemy => {
-      if (Phaser.Geom.Intersects.RectangleToRectangle(hitbox, enemy.getBounds())) {
+      const enemyBounds = enemy.getBounds();
+      if (Phaser.Geom.Intersects.RectangleToRectangle(hitbox, enemyBounds)) {
         if (enemy.takeDamage(damage)) {
           this.createDeathEffect(enemy.x, enemy.y);
           enemy.destroy();
@@ -176,7 +201,8 @@ export class BattleScene extends Phaser.Scene {
     const damage = 50;
 
     this.enemies.forEach(enemy => {
-      if (Phaser.Geom.Intersects.CircleToRectangle(hitbox, enemy.getBounds())) {
+      const enemyBounds = enemy.getBounds();
+      if (Phaser.Geom.Intersects.CircleToRectangle(hitbox, enemyBounds)) {
         if (enemy.takeDamage(damage)) {
           this.createDeathEffect(enemy.x, enemy.y);
           enemy.destroy();
@@ -224,28 +250,27 @@ export class BattleScene extends Phaser.Scene {
     this.hpBar.clear();
 
     this.hpBar.fillStyle(0x333333, 1);
-    this.hpBar.fillRect(20, 60, 300, 25);
+    this.hpBar.fillRect(20, 60, 300, 30);
 
     const hpPercent = this.player.getHp() / this.player.getMaxHp();
-    const hpColor = hpPercent > 0.5 ? 0x44ff44 : hpPercent > 0.25 ? 0xffff44 : 0xff4444;
+    const hpColor = hpPercent > 0.5 ? 0x4ade80 : hpPercent > 0.25 ? 0xfbbf24 : 0xef4444;
     this.hpBar.fillStyle(hpColor, 1);
-    this.hpBar.fillRect(20, 60, 300 * hpPercent, 25);
+    this.hpBar.fillRect(20, 60, 300 * hpPercent, 30);
 
-    this.hpBar.lineStyle(2, 0xffffff, 1);
-    this.hpBar.strokeRect(20, 60, 300, 25);
+    this.hpBar.lineStyle(3, 0xffffff, 1);
+    this.hpBar.strokeRect(20, 60, 300, 30);
 
-    this.hpBar.fillStyle(0xffffff, 1);
-    const hpText = this.add.text(170, 72, `${this.player.getHp()}/${this.player.getMaxHp()}`, {
-      fontSize: '14px',
-      color: '#ffffff'
+    this.add.text(170, 75, `${Math.ceil(this.player.getHp())} / ${this.player.getMaxHp()}`, {
+      fontSize: '16px',
+      color: '#ffffff',
+      fontStyle: 'bold'
     }).setOrigin(0.5).setScrollFactor(0);
-
-    this.time.delayedCall(1, () => hpText.destroy());
 
     const combo = this.player.getComboCount();
     if (combo > 1) {
       this.comboText.setText(`${combo} 连击!`);
       this.comboText.setAlpha(1);
+      this.comboText.setScale(1 + Math.sin(this.time.now * 0.01) * 0.1);
     } else {
       this.comboText.setAlpha(0);
     }
@@ -262,24 +287,40 @@ export class BattleScene extends Phaser.Scene {
     const centerX = this.cameras.main.width / 2;
     const centerY = this.cameras.main.height / 2;
 
-    this.add.rectangle(centerX, centerY, 400, 200, 0x000000, 0.8)
-      .setScrollFactor(0);
+    this.cameras.main.fade(500);
+    
+    this.time.delayedCall(500, () => {
+      this.add.rectangle(centerX, centerY, 450, 280, 0x1a1a2e, 0.95)
+        .setStrokeStyle(4, 0xffd700)
+        .setScrollFactor(0);
 
-    this.add.text(centerX, centerY - 50, '胜利!', {
-      fontSize: '48px',
-      color: '#ffcc00',
-      fontStyle: 'bold'
-    }).setOrigin(0.5).setScrollFactor(0);
+      this.add.text(centerX, centerY - 70, '胜利!', {
+        fontSize: '56px',
+        color: '#ffd700',
+        fontStyle: 'bold',
+        stroke: '#8b0000',
+        strokeThickness: 4
+      }).setOrigin(0.5).setScrollFactor(0);
 
-    const continueButton = this.add.text(centerX, centerY + 30, '继续', {
-      fontSize: '24px',
-      color: '#ffffff',
-      backgroundColor: '#4488ff',
-      padding: { x: 30, y: 10 }
-    }).setOrigin(0.5).setScrollFactor(0).setInteractive({ useHandCursor: true });
+      this.add.text(centerX, centerY, '所有敌人已被击败!', {
+        fontSize: '22px',
+        color: '#c49df0'
+      }).setOrigin(0.5).setScrollFactor(0);
 
-    continueButton.on('pointerdown', () => {
-      this.scene.start('DungeonScene');
+      const continueButton = this.add.rectangle(centerX, centerY + 70, 200, 55, 0x6b4c9a)
+        .setStrokeStyle(3, 0x9d7cd8)
+        .setInteractive({ useHandCursor: true })
+        .setScrollFactor(0);
+
+      this.add.text(centerX, centerY + 70, '继续', {
+        fontSize: '24px',
+        color: '#ffffff',
+        fontStyle: 'bold'
+      }).setOrigin(0.5).setScrollFactor(0);
+
+      continueButton.on('pointerdown', () => {
+        this.scene.start('DungeonScene');
+      });
     });
   }
 
@@ -288,24 +329,40 @@ export class BattleScene extends Phaser.Scene {
     const centerX = this.cameras.main.width / 2;
     const centerY = this.cameras.main.height / 2;
 
-    this.add.rectangle(centerX, centerY, 400, 200, 0x000000, 0.8)
-      .setScrollFactor(0);
+    this.cameras.main.fade(500, 100, 0, 0);
+    
+    this.time.delayedCall(500, () => {
+      this.add.rectangle(centerX, centerY, 450, 280, 0x2a0a0a, 0.95)
+        .setStrokeStyle(4, 0xff4444)
+        .setScrollFactor(0);
 
-    this.add.text(centerX, centerY - 50, '失败', {
-      fontSize: '48px',
-      color: '#ff4444',
-      fontStyle: 'bold'
-    }).setOrigin(0.5).setScrollFactor(0);
+      this.add.text(centerX, centerY - 70, '失败', {
+        fontSize: '56px',
+        color: '#ff4444',
+        fontStyle: 'bold',
+        stroke: '#440000',
+        strokeThickness: 4
+      }).setOrigin(0.5).setScrollFactor(0);
 
-    const retryButton = this.add.text(centerX, centerY + 30, '重试', {
-      fontSize: '24px',
-      color: '#ffffff',
-      backgroundColor: '#ff4444',
-      padding: { x: 30, y: 10 }
-    }).setOrigin(0.5).setScrollFactor(0).setInteractive({ useHandCursor: true });
+      this.add.text(centerX, centerY, '英雄倒下了...', {
+        fontSize: '22px',
+        color: '#ff8888'
+      }).setOrigin(0.5).setScrollFactor(0);
 
-    retryButton.on('pointerdown', () => {
-      this.scene.restart();
+      const retryButton = this.add.rectangle(centerX, centerY + 70, 200, 55, 0x993333)
+        .setStrokeStyle(3, 0xff6666)
+        .setInteractive({ useHandCursor: true })
+        .setScrollFactor(0);
+
+      this.add.text(centerX, centerY + 70, '重新挑战', {
+        fontSize: '24px',
+        color: '#ffffff',
+        fontStyle: 'bold'
+      }).setOrigin(0.5).setScrollFactor(0);
+
+      retryButton.on('pointerdown', () => {
+        this.scene.restart();
+      });
     });
   }
 }
