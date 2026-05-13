@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>武侠塔防 - Wuxia Tower Defense</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        overflow: hidden;
+        background: #1a1a2e;
+        font-family: 'Microsoft YaHei', sans-serif;
+      }
+      
+      #app {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+      }
+      
+      #three-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+      }
+      
+      #phaser-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 2;
+        pointer-events: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="three-canvas"></canvas>
+      <div id="phaser-canvas"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
