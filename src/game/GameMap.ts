@@ -6,6 +6,7 @@ export type TileType = 0 | 1 | 2
 export class GameMap {
   private map: TileType[][]
   private path: { x: number; y: number }[]
+  private graphics!: Phaser.GameObjects.Graphics
 
   constructor() {
     this.map = this.createMap()
@@ -84,7 +85,8 @@ export class GameMap {
   }
 
   draw(scene: Phaser.Scene): void {
-    const graphics = scene.add.graphics()
+    this.graphics = scene.add.graphics()
+    this.graphics.setDepth(-1)
     
     for (let y = 0; y < GameConfig.MAP_HEIGHT; y++) {
       for (let x = 0; x < GameConfig.MAP_WIDTH; x++) {
@@ -93,21 +95,19 @@ export class GameMap {
         const worldY = y * GameConfig.TILE_SIZE
         
         if (tile === 1) {
-          graphics.fillStyle(GameConfig.COLORS.PATH)
-          graphics.fillRect(worldX, worldY, GameConfig.TILE_SIZE, GameConfig.TILE_SIZE)
+          this.graphics.fillStyle(GameConfig.COLORS.PATH)
+          this.graphics.fillRect(worldX, worldY, GameConfig.TILE_SIZE, GameConfig.TILE_SIZE)
           
-          graphics.lineStyle(1, 0x6B5344)
-          graphics.strokeRect(worldX, worldY, GameConfig.TILE_SIZE, GameConfig.TILE_SIZE)
+          this.graphics.lineStyle(1, 0x6B5344)
+          this.graphics.strokeRect(worldX, worldY, GameConfig.TILE_SIZE, GameConfig.TILE_SIZE)
         } else if (tile === 2) {
-          graphics.fillStyle(GameConfig.COLORS.TOWER_SPOT, 0.5)
-          graphics.fillRect(worldX + 4, worldY + 4, GameConfig.TILE_SIZE - 8, GameConfig.TILE_SIZE - 8)
+          this.graphics.fillStyle(GameConfig.COLORS.TOWER_SPOT, 0.5)
+          this.graphics.fillRect(worldX + 4, worldY + 4, GameConfig.TILE_SIZE - 8, GameConfig.TILE_SIZE - 8)
           
-          graphics.lineStyle(2, 0x228B22)
-          graphics.strokeRect(worldX + 4, worldY + 4, GameConfig.TILE_SIZE - 8, GameConfig.TILE_SIZE - 8)
+          this.graphics.lineStyle(2, 0x228B22)
+          this.graphics.strokeRect(worldX + 4, worldY + 4, GameConfig.TILE_SIZE - 8, GameConfig.TILE_SIZE - 8)
         }
       }
     }
-    
-    graphics.destroy()
   }
 }
