@@ -12,6 +12,8 @@ export class StickFigure extends Phaser.GameObjects.Container {
   private attackCooldown: number = 0;
   private skillCooldown: number = 0;
   private comboCount: number = 0;
+  private maxComboCount: number = 0;
+  private comboTimer: number = 0;
   private animState: 'idle' | 'walk' | 'jump' | 'attack' | 'hurt' = 'idle';
 
   constructor(scene: Phaser.Scene, x: number, y: number, heroType: HeroType) {
@@ -107,6 +109,12 @@ export class StickFigure extends Phaser.GameObjects.Container {
     if (this.skillCooldown > 0) {
       this.skillCooldown -= delta;
     }
+    if (this.comboTimer > 0) {
+      this.comboTimer -= delta;
+      if (this.comboTimer <= 0) {
+        this.resetCombo();
+      }
+    }
 
     if (this.body.velocity.x !== 0 && this.body.blocked.down) {
       this.animState = 'walk';
@@ -146,19 +154,29 @@ export class StickFigure extends Phaser.GameObjects.Container {
       this.isAttacking = true;
       this.attackCooldown = GameConfig.ATTACK_COOLDOWN;
       this.comboCount++;
+      this.comboTimer = 800;
+      
+      if (this.comboCount > this.maxComboCount) {
+        this.maxComboCount = this.comboCount;
+      }
 
-      this.scene.time.delayedCall(300, () => {
+      const attackDuration = Math.max(200, 350 - this.comboCount * 30);
+      
+      this.scene.time.delayedCall(attackDuration, () => {
         this.isAttacking = false;
-      });
-
-      this.scene.time.delayedCall(1000, () => {
-        if (this.comboCount > 0) this.comboCount = 0;
       });
 
       return true;
     }
     return false;
   }
+
+  resetCombo() {
+    this.comboCount = 0;
+    this.maxComboCount = 0;
+  }
+
+  getMaxComboCount(): number { return this.maxComboCount; }
 
   useSkill(): boolean {
     if (this.skillCooldown <= 0) {

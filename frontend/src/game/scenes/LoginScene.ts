@@ -6,8 +6,6 @@ export class LoginScene extends Phaser.Scene {
   private passwordInput!: HTMLInputElement;
   private loginButton!: Phaser.GameObjects.Rectangle;
   private registerButton!: Phaser.GameObjects.Rectangle;
-  private loginText!: Phaser.GameObjects.Text;
-  private registerText!: Phaser.GameObjects.Text;
   private statusText!: Phaser.GameObjects.Text;
   private isLoading: boolean = false;
 
@@ -24,8 +22,9 @@ export class LoginScene extends Phaser.Scene {
     this.createInputFields(centerX, centerY);
     this.createButtons(centerX, centerY);
     this.createStatusText(centerX, centerY);
+    this.createHintText(centerX, centerY);
     
-    this.time.delayedCall(500, () => this.checkExistingSession());
+    this.time.delayedCall(300, () => this.checkExistingSession());
   }
 
   private createBackground() {
@@ -34,40 +33,25 @@ export class LoginScene extends Phaser.Scene {
     graphics.fillStyle(0x1a0a2e, 1);
     graphics.fillRect(0, 0, this.cameras.main.width, this.cameras.main.height);
     
-    for (let y = 0; y < this.cameras.main.height; y += 20) {
-      const alpha = 0.3 * (1 - Math.abs(y - this.cameras.main.height / 2) / (this.cameras.main.height / 2));
-      graphics.fillStyle(0x2d1b4e, alpha);
-      graphics.fillRect(0, y, this.cameras.main.width, 20);
+    for (let y = 0; y < this.cameras.main.height; y += 30) {
+      const alpha = 0.15 * (1 - Math.abs(y - this.cameras.main.height / 2) / (this.cameras.main.height / 2));
+      graphics.fillStyle(0x3d2070, alpha);
+      graphics.fillRect(0, y, this.cameras.main.width, 30);
     }
 
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 80; i++) {
       const x = Math.random() * this.cameras.main.width;
       const y = Math.random() * this.cameras.main.height;
-      const size = Math.random() * 3 + 1;
-      const alpha = Math.random() * 0.5 + 0.3;
-      graphics.fillStyle(0xffd700, alpha);
+      const size = Math.random() * 2.5 + 1;
+      graphics.fillStyle(0xffd700, Math.random() * 0.5 + 0.2);
       graphics.fillCircle(x, y, size);
     }
 
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 5; i++) {
       const startX = Math.random() * this.cameras.main.width;
-      const startY = -50;
-      const length = Math.random() * 100 + 50;
-      
-      this.tweens.add({
-        targets: { x: startX, y: startY },
-        y: this.cameras.main.height + 50,
-        duration: 2000 + Math.random() * 3000,
-        repeat: -1,
-        delay: Math.random() * 5000,
-        onUpdate: (tween) => {
-          const progress = tween.progress;
-          const currentX = tween.targets[0].x;
-          const currentY = tween.targets[0].y;
-          graphics.lineStyle(2, 0xffd700, 0.3 * (1 - progress));
-          graphics.lineBetween(currentX, currentY, currentX, currentY + length);
-        }
-      });
+      this.add.line(0, startX, -50, startX + 100, this.cameras.main.height + 50, 0xffd700)
+        .setAlpha(0.3)
+        .setOrigin(0);
     }
   }
 
@@ -78,7 +62,7 @@ export class LoginScene extends Phaser.Scene {
       color: '#ffd700',
       fontStyle: 'bold',
       stroke: '#8b0000',
-      strokeThickness: 6
+      strokeThickness: 5
     }).setOrigin(0.5);
 
     mainTitle.setShadow(4, 4, '#000000', 8);
@@ -103,32 +87,41 @@ export class LoginScene extends Phaser.Scene {
   }
 
   private createInputFields(centerX: number, centerY: number) {
-    const panel = this.add.rectangle(centerX, centerY - 20, 450, 280, 0x1a1a2e, 0.9)
-      .setStrokeStyle(3, 0x4a3a7a);
+    const panelX = centerX;
+    const panelY = centerY - 20;
+    
+    const panel = this.add.rectangle(panelX, panelY, 480, 220, 0x1a1a2e, 0.95)
+      .setStrokeStyle(4, 0x4a3a7a);
 
-    this.add.rectangle(centerX, centerY - 20, 450, 280)
+    this.add.rectangle(panelX, panelY, 480, 220)
       .setStrokeStyle(1, 0x6a5a9a, 0.5);
 
-    this.add.text(centerX - 180, centerY - 100, '用户名', {
+    this.add.text(panelX - 200, panelY - 70, '用户名', {
       fontSize: '18px',
       color: '#e0d0f0',
       fontStyle: 'bold'
     }).setOrigin(0, 0.5);
 
-    this.add.text(centerX - 180, centerY - 20, '密码', {
+    this.add.text(panelX - 200, panelY + 10, '密码', {
       fontSize: '18px',
       color: '#e0d0f0',
       fontStyle: 'bold'
     }).setOrigin(0, 0.5);
+
+    const container = document.getElementById('game-container') || document.body;
+    
+    const inputContainer = document.createElement('div');
+    inputContainer.style.position = 'absolute';
+    inputContainer.style.left = `${panelX - 200}px`;
+    inputContainer.style.top = `${panelY - 45}px`;
+    inputContainer.style.width = '400px';
+    container.appendChild(inputContainer);
 
     this.usernameInput = document.createElement('input');
     this.usernameInput.type = 'text';
-    this.usernameInput.placeholder = '请输入用户名';
-    this.usernameInput.style.position = 'absolute';
-    this.usernameInput.style.left = `${centerX - 180}px`;
-    this.usernameInput.style.top = `${centerY - 75}px`;
-    this.usernameInput.style.width = '330px';
-    this.usernameInput.style.height = '40px';
+    this.usernameInput.placeholder = '请输入用户名 (演示: demo)';
+    this.usernameInput.style.width = '380px';
+    this.usernameInput.style.height = '44px';
     this.usernameInput.style.padding = '0 15px';
     this.usernameInput.style.fontSize = '16px';
     this.usernameInput.style.borderRadius = '8px';
@@ -138,7 +131,8 @@ export class LoginScene extends Phaser.Scene {
     this.usernameInput.style.outline = 'none';
     this.usernameInput.style.transition = 'all 0.3s';
     this.usernameInput.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
-    document.body.appendChild(this.usernameInput);
+    this.usernameInput.style.marginBottom = '20px';
+    inputContainer.appendChild(this.usernameInput);
 
     this.usernameInput.addEventListener('focus', () => {
       this.usernameInput.style.border = '2px solid #9d7cd8';
@@ -151,12 +145,9 @@ export class LoginScene extends Phaser.Scene {
 
     this.passwordInput = document.createElement('input');
     this.passwordInput.type = 'password';
-    this.passwordInput.placeholder = '请输入密码';
-    this.passwordInput.style.position = 'absolute';
-    this.passwordInput.style.left = `${centerX - 180}px`;
-    this.passwordInput.style.top = `${centerY + 5}px`;
-    this.passwordInput.style.width = '330px';
-    this.passwordInput.style.height = '40px';
+    this.passwordInput.placeholder = '请输入密码 (演示: demo123)';
+    this.passwordInput.style.width = '380px';
+    this.passwordInput.style.height = '44px';
     this.passwordInput.style.padding = '0 15px';
     this.passwordInput.style.fontSize = '16px';
     this.passwordInput.style.borderRadius = '8px';
@@ -166,7 +157,7 @@ export class LoginScene extends Phaser.Scene {
     this.passwordInput.style.outline = 'none';
     this.passwordInput.style.transition = 'all 0.3s';
     this.passwordInput.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
-    document.body.appendChild(this.passwordInput);
+    inputContainer.appendChild(this.passwordInput);
 
     this.passwordInput.addEventListener('focus', () => {
       this.passwordInput.style.border = '2px solid #9d7cd8';
@@ -176,24 +167,35 @@ export class LoginScene extends Phaser.Scene {
       this.passwordInput.style.border = '2px solid #5a4a8a';
       this.passwordInput.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
     });
+
+    this.usernameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        this.handleLogin();
+      }
+    });
+    this.passwordInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        this.handleLogin();
+      }
+    });
   }
 
   private createButtons(centerX: number, centerY: number) {
-    this.loginButton = this.add.rectangle(centerX - 100, centerY + 100, 160, 50, 0x6b4c9a)
-      .setStrokeStyle(2, 0x9d7cd8)
+    this.loginButton = this.add.rectangle(centerX - 100, centerY + 130, 170, 55, 0x6b4c9a)
+      .setStrokeStyle(3, 0x9d7cd8)
       .setInteractive({ useHandCursor: true });
 
-    this.loginText = this.add.text(centerX - 100, centerY + 100, '登录', {
+    const loginText = this.add.text(centerX - 100, centerY + 130, '登录', {
       fontSize: '22px',
       color: '#ffffff',
       fontStyle: 'bold'
     }).setOrigin(0.5);
 
-    this.registerButton = this.add.rectangle(centerX + 100, centerY + 100, 160, 50, 0x4a7c59)
-      .setStrokeStyle(2, 0x6bc47f)
+    this.registerButton = this.add.rectangle(centerX + 100, centerY + 130, 170, 55, 0x4a7c59)
+      .setStrokeStyle(3, 0x6bc47f)
       .setInteractive({ useHandCursor: true });
 
-    this.registerText = this.add.text(centerX + 100, centerY + 100, '注册', {
+    const registerText = this.add.text(centerX + 100, centerY + 130, '注册', {
       fontSize: '22px',
       color: '#ffffff',
       fontStyle: 'bold'
@@ -221,10 +223,17 @@ export class LoginScene extends Phaser.Scene {
   }
 
   private createStatusText(centerX: number, centerY: number) {
-    this.statusText = this.add.text(centerX, centerY + 160, '', {
+    this.statusText = this.add.text(centerX, centerY + 190, '', {
       fontSize: '18px',
       color: '#ff6b6b',
       fontStyle: 'bold'
+    }).setOrigin(0.5);
+  }
+
+  private createHintText(centerX: number, centerY: number) {
+    this.add.text(centerX, centerY + 230, 'WASD移动 | J普攻 | K技能 | L跳跃', {
+      fontSize: '14px',
+      color: '#888888'
     }).setOrigin(0.5);
   }
 
@@ -252,7 +261,6 @@ export class LoginScene extends Phaser.Scene {
     if (!username || !password) {
       this.showStatus('请输入用户名和密码', '#ff6b6b');
       this.shakeElement(this.usernameInput);
-      this.shakeElement(this.passwordInput);
       return;
     }
 
@@ -267,21 +275,16 @@ export class LoginScene extends Phaser.Scene {
         localStorage.setItem('user_id', response.user.id);
         this.showStatus('登录成功!', '#4ade80');
         
-        this.tweens.add({
-          targets: this.cameras.main,
-          alpha: 0,
-          duration: 800,
-          onComplete: () => {
-            this.removeInputElements();
-            this.scene.start('CharacterSelectScene', { user: response.user });
-          }
+        this.cameras.main.fade(800);
+        this.time.delayedCall(800, () => {
+          this.removeInputElements();
+          this.scene.start('CharacterSelectScene', { user: response.user });
         });
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      this.showStatus(error.message || '登录失败，请检查网络连接', '#ff6b6b');
+      this.showStatus(error.message || '登录失败', '#ff6b6b');
       this.shakeElement(this.usernameInput);
-      this.shakeElement(this.passwordInput);
     } finally {
       this.setLoading(false);
     }
@@ -296,7 +299,6 @@ export class LoginScene extends Phaser.Scene {
     if (!username || !password) {
       this.showStatus('请输入用户名和密码', '#ff6b6b');
       this.shakeElement(this.usernameInput);
-      this.shakeElement(this.passwordInput);
       return;
     }
 
@@ -311,7 +313,7 @@ export class LoginScene extends Phaser.Scene {
 
     try {
       const response = await AuthService.register(username, password);
-      this.showStatus('注册成功! 请点击登录', '#4ade80');
+      this.showStatus(response.message || '注册成功! 请登录', '#4ade80');
       
       this.tweens.add({
         targets: this.registerButton,
@@ -321,7 +323,7 @@ export class LoginScene extends Phaser.Scene {
       });
     } catch (error: any) {
       console.error('Register error:', error);
-      this.showStatus(error.message || '注册失败，请检查网络连接', '#ff6b6b');
+      this.showStatus(error.message || '注册失败', '#ff6b6b');
       this.shakeElement(this.usernameInput);
     } finally {
       this.setLoading(false);
@@ -330,7 +332,7 @@ export class LoginScene extends Phaser.Scene {
 
   private shakeElement(element: HTMLElement) {
     const originalLeft = element.style.left;
-    const originalX = parseInt(originalLeft);
+    const originalX = parseInt(originalLeft) || 0;
     
     this.tweens.addCounter({
       from: 0,
@@ -339,10 +341,10 @@ export class LoginScene extends Phaser.Scene {
       onUpdate: (tween) => {
         const progress = tween.getValue();
         const offset = Math.sin(progress * Math.PI * 6) * 5 * (1 - progress);
-        element.style.left = `${originalX + offset}px`;
+        element.style.transform = `translateX(${offset}px)`;
       },
       onComplete: () => {
-        element.style.left = originalLeft;
+        element.style.transform = '';
       }
     });
   }
@@ -385,11 +387,17 @@ export class LoginScene extends Phaser.Scene {
   }
 
   private removeInputElements() {
-    if (this.usernameInput && this.usernameInput.parentNode) {
-      this.usernameInput.parentNode.removeChild(this.usernameInput);
-    }
-    if (this.passwordInput && this.passwordInput.parentNode) {
-      this.passwordInput.parentNode.removeChild(this.passwordInput);
-    }
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+      if (input.parentNode) {
+        input.parentNode.removeChild(input);
+      }
+    });
+    const containers = document.querySelectorAll('div');
+    containers.forEach(div => {
+      if (div.children.length === 0 && div.parentNode) {
+        div.parentNode.removeChild(div);
+      }
+    });
   }
 }

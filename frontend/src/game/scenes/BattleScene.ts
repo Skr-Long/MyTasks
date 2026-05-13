@@ -11,7 +11,6 @@ export class BattleScene extends Phaser.Scene {
   private skillKey!: Phaser.Input.Keyboard.Key;
   private leftKey!: Phaser.Input.Keyboard.Key;
   private rightKey!: Phaser.Input.Keyboard.Key;
-  private jumpKey!: Phaser.Input.Keyboard.Key;
   private hpBar!: Phaser.GameObjects.Graphics;
   private comboText!: Phaser.GameObjects.Text;
   private isPaused: boolean = false;
@@ -119,17 +118,21 @@ export class BattleScene extends Phaser.Scene {
       strokeThickness: 3
     }).setOrigin(0.5).setScrollFactor(0);
 
-    this.add.text(20, 20, 'A/D: 移动 | W: 跳跃 | J: 攻击 | K: 技能', {
+    this.add.text(20, 20, 'WASD: 移动 | J: 攻击 | K: 技能 | L: 跳跃', {
       fontSize: '14px',
       color: '#aaaaaa'
     }).setScrollFactor(0);
   }
 
+  private upKeyW!: Phaser.Input.Keyboard.Key;
+  private upKeyL!: Phaser.Input.Keyboard.Key;
+
   private setupInput() {
     this.cursors = this.input.keyboard!.createCursorKeys();
     this.leftKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.A);
     this.rightKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.D);
-    this.jumpKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+    this.upKeyW = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+    this.upKeyL = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.L);
     this.attackKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.J);
     this.skillKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.K);
   }
@@ -162,7 +165,9 @@ export class BattleScene extends Phaser.Scene {
       this.player.stopMoving();
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.jumpKey) || Phaser.Input.Keyboard.JustDown(this.cursors.up)) {
+    if (Phaser.Input.Keyboard.JustDown(this.upKeyW) || 
+        Phaser.Input.Keyboard.JustDown(this.upKeyL) || 
+        Phaser.Input.Keyboard.JustDown(this.cursors.up)) {
       this.player.jump();
     }
 
