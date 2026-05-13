@@ -4,7 +4,7 @@ import { GameConfig, HeroTypes, HeroType, QualityColors } from '../../shared/Gam
 export class StickFigure extends Phaser.GameObjects.Container {
   private graphics: Phaser.GameObjects.Graphics;
   private heroType: HeroType;
-  private body: Phaser.Physics.Arcade.Body;
+  declare body: Phaser.Physics.Arcade.Body;
   private hp: number = 100;
   private maxHp: number = 100;
   private isAttacking: boolean = false;
@@ -39,7 +39,7 @@ export class StickFigure extends Phaser.GameObjects.Container {
     const scaleX = this.facingRight ? 1 : -1;
 
     this.graphics.save();
-    this.graphics.scaleX(scaleX);
+    this.graphics.scaleX = scaleX;
 
     this.graphics.lineStyle(4, color, 1);
 
@@ -77,11 +77,11 @@ export class StickFigure extends Phaser.GameObjects.Container {
       this.graphics.lineBetween(0, 20, 15, 60);
     }
 
-    this.drawWeapon(color);
+    this.drawWeapon();
     this.graphics.restore();
   }
 
-  private drawWeapon(color: number) {
+  private drawWeapon() {
     if (this.heroType === HeroTypes.WU_SONG) {
       this.graphics.lineStyle(3, 0xaaaaaa, 1);
       if (this.animState === 'attack') {
@@ -94,15 +94,15 @@ export class StickFigure extends Phaser.GameObjects.Container {
     } else if (this.heroType === HeroTypes.LIN_CHONG) {
       this.graphics.lineStyle(3, 0xaaaaaa, 1);
       this.graphics.lineBetween(0, -25, 0, -90);
-      this.graphics.triangle(0, -95, -8, -85, 8, -85);
+      this.graphics.fillTriangle(0, -95, -8, -85, 8, -85);
     } else if (this.heroType === HeroTypes.LU_ZHI_SHEN) {
-      this.graphics.lineStyle(5, 0x8B4513, 1);
+      this.graphics.lineStyle(6, 0x8B4513, 1);
       this.graphics.lineBetween(35, -30, 35, 40);
       this.graphics.strokeCircle(35, -35, 10);
     }
   }
 
-  update(time: number, delta: number) {
+  update(_time: number, delta: number) {
     if (this.attackCooldown > 0) {
       this.attackCooldown -= delta;
     }

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 
 export class Enemy extends Phaser.GameObjects.Container {
   private graphics: Phaser.GameObjects.Graphics;
-  private body: Phaser.Physics.Arcade.Body;
+  declare body: Phaser.Physics.Arcade.Body;
   private hp: number;
   private maxHp: number;
   private damage: number;
@@ -104,7 +104,7 @@ export class Enemy extends Phaser.GameObjects.Container {
     this.graphics.fillRect(-hpBarWidth / 2, -size - 30, hpBarWidth * hpPercent, 6);
   }
 
-  update(time: number, delta: number, player?: Phaser.GameObjects.Container) {
+  update(_time: number, delta: number, player?: Phaser.GameObjects.Container) {
     if (player) {
       this.target = player;
     }

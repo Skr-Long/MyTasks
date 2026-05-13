@@ -58,7 +58,7 @@ function saveDemoUsers(users: Map<string, { password: string; user: User }>) {
 }
 
 export class AuthService {
-  private static useDemoMode = true;
+  private static useDemoMode = false;
 
   static async login(username: string, password: string): Promise<LoginResponse> {
     if (this.useDemoMode) {
@@ -68,7 +68,10 @@ export class AuthService {
     try {
       const response = await api.post('/auth/login', { username, password });
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
+      if (error.response) {
+        throw new Error(error.response.data?.message || '用户名或密码错误');
+      }
       console.log('API failed, falling back to demo mode');
       return this.demoLogin(username, password);
     }
@@ -105,14 +108,13 @@ export class AuthService {
   }
 
   static async register(username: string, password: string): Promise<RegisterResponse> {
-    if (this.useDemoMode) {
-      return this.demoRegister(username, password);
-    }
-
     try {
       const response = await api.post('/auth/register', { username, password });
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
+      if (error.response) {
+        throw new Error(error.response.data?.message || '注册失败');
+      }
       console.log('API failed, falling back to demo mode');
       return this.demoRegister(username, password);
     }
@@ -184,7 +186,11 @@ export class AuthService {
     try {
       const response = await api.get('/auth/me');
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_id');
+      }
       throw new Error('获取用户信息失败');
     }
   }

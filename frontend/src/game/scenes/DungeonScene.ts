@@ -99,7 +99,7 @@ export class DungeonScene extends Phaser.Scene {
     ];
   }
 
-  private createLevelMap(centerX: number, centerY: number) {
+  private createLevelMap(centerX: number, _centerY: number) {
     const title = this.add.text(centerX, 60, '大乱水浒 - 副本选择', {
       fontSize: '36px',
       color: '#ffd700',

@@ -9,7 +9,7 @@ export class CharacterSelectScene extends Phaser.Scene {
     super('CharacterSelectScene');
   }
 
-  create(data: { user?: any }) {
+  create(_data: { user?: any }) {
     const centerX = this.cameras.main.width / 2;
     const centerY = this.cameras.main.height / 2;
 
@@ -152,7 +152,7 @@ export class CharacterSelectScene extends Phaser.Scene {
     } else if (type === HeroTypes.LIN_CHONG) {
       graphics.lineStyle(4, 0xc0c0c0, 1);
       graphics.lineBetween(x, y - 25, x, y - 110);
-      graphics.triangle(x, y - 115, x - 12, y - 100, x + 12, y - 100);
+      graphics.fillTriangle(x, y - 115, x - 12, y - 100, x + 12, y - 100);
     } else if (type === HeroTypes.LU_ZHI_SHEN) {
       graphics.lineStyle(6, 0x8B4513, 1);
       graphics.lineBetween(x + 40, y - 20, x + 40, y + 50);
@@ -182,11 +182,11 @@ export class CharacterSelectScene extends Phaser.Scene {
       .setStrokeStyle(3, 0x9d7cd8)
       .setInteractive({ useHandCursor: true });
 
-    const buttonText = this.add.text(centerX, centerY + 230, '开始冒险', {
-      fontSize: '28px',
-      color: '#ffffff',
-      fontStyle: 'bold'
-    }).setOrigin(0.5);
+    this.add.text(centerX, centerY + 230, '开始冒险', {
+        fontSize: '28px',
+        color: '#ffffff',
+        fontStyle: 'bold'
+      }).setOrigin(0.5);
 
     buttonBg.on('pointerover', () => {
       buttonBg.setFillStyle(0x7b5caa);

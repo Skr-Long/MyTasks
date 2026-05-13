@@ -11,6 +11,8 @@ export class BattleScene extends Phaser.Scene {
   private skillKey!: Phaser.Input.Keyboard.Key;
   private leftKey!: Phaser.Input.Keyboard.Key;
   private rightKey!: Phaser.Input.Keyboard.Key;
+  private upKeyW!: Phaser.Input.Keyboard.Key;
+  private upKeyL!: Phaser.Input.Keyboard.Key;
   private hpBar!: Phaser.GameObjects.Graphics;
   private comboText!: Phaser.GameObjects.Text;
   private isPaused: boolean = false;
@@ -33,6 +35,8 @@ export class BattleScene extends Phaser.Scene {
     this.spawnEnemies();
     this.createUI();
     this.setupInput();
+
+    this.physics.add.collider(this.player, this.ground);
 
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
     this.cameras.main.fadeIn(1000);
@@ -77,8 +81,6 @@ export class BattleScene extends Phaser.Scene {
       const platform = this.add.rectangle(i * 100 + 50, 650, 100, 40, 0x3a5a3a);
       this.ground.add(platform);
     }
-
-    this.physics.add.collider(this.player, this.ground);
   }
 
   private spawnEnemies() {
@@ -102,7 +104,7 @@ export class BattleScene extends Phaser.Scene {
     this.hpBar = this.add.graphics();
     this.hpBar.setScrollFactor(0);
 
-    const title = this.add.text(640, 30, '大乱水浒 - 战斗', {
+    this.add.text(640, 30, '大乱水浒 - 战斗', {
       fontSize: '24px',
       color: '#ffd700',
       fontStyle: 'bold',
@@ -124,9 +126,6 @@ export class BattleScene extends Phaser.Scene {
     }).setScrollFactor(0);
   }
 
-  private upKeyW!: Phaser.Input.Keyboard.Key;
-  private upKeyL!: Phaser.Input.Keyboard.Key;
-
   private setupInput() {
     this.cursors = this.input.keyboard!.createCursorKeys();
     this.leftKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -143,14 +142,15 @@ export class BattleScene extends Phaser.Scene {
     this.handlePlayerInput();
     this.player.update(time, delta);
 
-    this.enemies.forEach((enemy, index) => {
+    for (let i = this.enemies.length - 1; i >= 0; i--) {
+      const enemy = this.enemies[i];
       if (!enemy.active) {
-        this.enemies.splice(index, 1);
-        return;
+        this.enemies.splice(i, 1);
+        continue;
       }
       enemy.update(time, delta, this.player);
       this.checkEnemyAttack(enemy);
-    });
+    }
 
     this.updateUI();
     this.checkVictory();
