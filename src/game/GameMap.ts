@@ -35,18 +35,6 @@ export class GameMap {
       }
     })
 
-    const towerSpots = [
-      [2, 1], [4, 1], [2, 4], [5, 4],
-      [8, 4], [6, 7], [9, 7], [11, 7],
-      [12, 9], [14, 8]
-    ]
-
-    towerSpots.forEach(([x, y]) => {
-      if (y < GameConfig.MAP_HEIGHT && x < GameConfig.MAP_WIDTH) {
-        map[y][x] = 2
-      }
-    })
-
     return map
   }
 
@@ -75,7 +63,7 @@ export class GameMap {
   }
 
   canPlaceTower(x: number, y: number): boolean {
-    return this.getTile(x, y) === 2
+    return this.getTile(x, y) !== 1
   }
 
   setTile(x: number, y: number, type: TileType): void {
@@ -100,12 +88,6 @@ export class GameMap {
           
           this.graphics.lineStyle(1, 0x6B5344)
           this.graphics.strokeRect(worldX, worldY, GameConfig.TILE_SIZE, GameConfig.TILE_SIZE)
-        } else if (tile === 2) {
-          this.graphics.fillStyle(GameConfig.COLORS.TOWER_SPOT, 0.5)
-          this.graphics.fillRect(worldX + 4, worldY + 4, GameConfig.TILE_SIZE - 8, GameConfig.TILE_SIZE - 8)
-          
-          this.graphics.lineStyle(2, 0x228B22)
-          this.graphics.strokeRect(worldX + 4, worldY + 4, GameConfig.TILE_SIZE - 8, GameConfig.TILE_SIZE - 8)
         }
       }
     }
