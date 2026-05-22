@@ -1,8 +1,8 @@
-use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
-use std::io::{BufReader, Write};
+use std::io::BufReader;
 use std::path::PathBuf;
+use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::Manager;
 use uuid::Uuid;
 
@@ -76,6 +76,13 @@ fn get_file_extension(filename: &str) -> String {
         .to_lowercase()
 }
 
+fn get_current_timestamp() -> String {
+    match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(duration) => duration.as_secs().to_string(),
+        Err(_) => "0".to_string(),
+    }
+}
+
 #[tauri::command]
 async fn import_book(app_handle: tauri::AppHandle) -> Result<Book, String> {
     let file_path = tauri_plugin_dialog::DialogExt::dialog(&app_handle)
@@ -85,7 +92,8 @@ async fn import_book(app_handle: tauri::AppHandle) -> Result<Book, String> {
             &["txt", "epub", "pdf", "mobi", "azw3", "md", "html", "htm"],
         )
         .set_title("选择要导入的书籍")
-        .blocking_pick_file()
+        .pick_file()
+        .await
         .map_err(|e| e.to_string())?;
 
     let file_path = file_path.ok_or_else(|| "未选择文件".to_string())?;
@@ -109,7 +117,7 @@ async fn import_book(app_handle: tauri::AppHandle) -> Result<Book, String> {
         format,
         path: path_str,
         file_size,
-        added_at: Utc::now().to_rfc3339(),
+        added_at: get_current_timestamp(),
         progress: 0,
     };
 

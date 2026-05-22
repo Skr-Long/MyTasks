@@ -75,7 +75,8 @@ function App() {
   };
 
   const formatDate = (dateStr: string): string => {
-    const date = new Date(dateStr);
+    const timestamp = parseInt(dateStr, 10);
+    const date = isNaN(timestamp) ? new Date(dateStr) : new Date(timestamp * 1000);
     return date.toLocaleDateString('zh-CN', {
       year: 'numeric',
       month: 'long',
